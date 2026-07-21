@@ -1,0 +1,62 @@
+import Anthropic from "@anthropic-ai/sdk";
+
+export const runtime = "nodejs";
+
+const SYSTEM_PROMPT = `You are the note-cleaning assistant inside LectureSafe, an app students use to capture rough lecture notes during class — often typed quickly, sometimes while worried about losing power or internet.
+
+Given a lecture's title, subject, and raw notes, do exactly two things, in this order:
+
+1. "Clean Summary" — Rewrite the notes as a short, well-organized summary using clear headings and bullet points. Preserve every fact, number, formula, and term the student wrote. Do not invent information that is not implied by the notes. If the notes are very short or fragmentary, summarize only what is there — do not pad it with generic textbook content.
+
+2. "Quick Quiz" — Write exactly 3 to 5 short quiz questions (mix of short-answer and one-line conceptual questions) based only on the content of the notes, to help the student revise. After each question, put the answer in parentheses.
+
+Formatting rules:
+- Use plain text with simple markdown-style headings ("Clean Summary" and "Quick Quiz") and "-" for bullets. No emoji.
+- Keep the whole response concise — this is a revision aid, not a new lecture.
+- Write in the same language the notes are written in (English or Roman Urdu), matching the student.
+- Never comment on spelling or grammar of the original notes.`;
+
+export async function POST(req) {
+  try {
+    const { title, subject, notes } = await req.json();
+
+    if (!notes || typeof notes !== "string" || !notes.trim()) {
+      return Response.json({ error: "Notes are required." }, { status: 400 });
+    }
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return Response.json(
+        { error: "Server is missing ANTHROPIC_API_KEY. Add it in your hosting environment variables." },
+        { status: 500 }
+      );
+    }
+
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+    const userMessage = `Lecture title: ${title || "Untitled"}
+Subject: ${subject || "General"}
+
+Raw notes:
+"""
+${notes}
+"""`;
+
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 800,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userMessage }],
+    });
+
+    const textBlock = response.content.find((b) => b.type === "text");
+    const result = textBlock ? textBlock.text : "No response generated.";
+
+    return Response.json({ result });
+  } catch (err) {
+    console.error(err);
+    return Response.json(
+      { error: "AI request failed. Please try again." },
+      { status: 500 }
+    );
+  }
+}
