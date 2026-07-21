@@ -42,7 +42,7 @@ ${notes}
 """`;
 
     const response = await anthropic.messages.create({
-      model: "model: "claude-sonnet-5",
+      model: "claude-sonnet-5",
       max_tokens: 800,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }],
