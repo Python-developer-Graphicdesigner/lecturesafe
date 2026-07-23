@@ -14,7 +14,7 @@ LectureSafe is a lecture-notes app built for students in places where electricit
 
 ## b. Live URL
 
-🔗 **https://lecturesafe.vercel.app**
+🔗 **lecturesafe-xxmh.vercel.app**
 
 ## c. Features
 
@@ -80,4 +80,4 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-*Built as a final project — an app for students who study through blackouts and slow internet.*
+*Built as a final project — an app for students who study through blackouts and slow internet.*lecturesafe-xxmh.vercel.app
